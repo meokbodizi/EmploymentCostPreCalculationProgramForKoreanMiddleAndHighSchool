@@ -1251,6 +1251,7 @@ if __name__ == "__main__":
                 if self.교직원["원로교사"] == 0:
                     employee_elder_candidate_text.insert(END, f"작업연월, {작업월일}, 원로교사수당 지급 추정 추가 대상자:, {self.교직원['성명']}\n")
                     print("작업연월", 작업월일, "원로교사수당 지급 추정 추가 대상자:", self.교직원["성명"])
+                    return int(0)
                 elif self.교직원["원로교사"] == 1:
                     return 원로교사수당[self.작업연도]
             else:
@@ -1382,7 +1383,7 @@ if __name__ == "__main__":
             if self.교직원['퇴직일'] != "" and self.strptime(self.교직원['퇴직일']) <= working_month:
                 return values, prolations, working_month_totaldays
             if "휴직" in self.교직원.keys():
-                ongoing_parental_leaves = [[category, self.strptime(date_start), self.strptime(date_end), contigous, n] for n, [category, date_start, date_end, contigous] in enumerate(self.교직원["휴직"]) if re.search("육아휴직", category) and (self.strptime(date_start)<=working_month+relativedelta(months=1)-relativedelta(days=1) and working_month<=self.strptime(date_start)) or (self.strptime(date_end)<=working_month+relativedelta(months=1)-relativedelta(days=1) and working_month<=self.strptime(date_end)) or (working_month<=self.strptime(date_end) and working_month>=self.strptime(date_start))]
+                ongoing_parental_leaves = [[category, self.strptime(date_start), self.strptime(date_end), contigous, n] for n, [category, date_start, date_end, contigous] in enumerate(self.교직원["휴직"]) if re.search("육아휴직", category) and ((self.strptime(date_start)<=working_month+relativedelta(months=1)-relativedelta(days=1) and working_month<=self.strptime(date_start)) or (self.strptime(date_end)<=working_month+relativedelta(months=1)-relativedelta(days=1) and working_month<=self.strptime(date_end)) or (working_month<=self.strptime(date_end) and working_month>=self.strptime(date_start)))]
                 for ongoing_parental_leave in ongoing_parental_leaves:
                     prolation = 0
                     prolation1, prolation2 = (working_month+relativedelta(months=1)-ongoing_parental_leave[1]).days, (ongoing_parental_leave[2]-working_month).days+1
@@ -1455,7 +1456,43 @@ if __name__ == "__main__":
                     return int(0)
             else:
                 return int(0)
-
+        # 정근수당도 수정 필요. 질병휴직 등은 근무한 월수로 안 침
+        def 신분변동(self):
+            working_month = (datetime(int(작업연도), 1, 1)+relativedelta(months=self.현재월-1))
+            percents = []
+            prolations = []
+            working_month_totaldays = (working_month+relativedelta(months=1)-relativedelta(days=1)).day
+            if self.교직원['현부서임용일'] != "" and self.strptime(self.교직원['현부서임용일']) > working_month:
+                return percents, prolations, working_month_totaldays
+            if self.교직원['퇴직일'] != "" and self.strptime(self.교직원['퇴직일']) <= working_month:
+                return percents, prolations, working_month_totaldays
+            if "휴직" in self.교직원.keys():
+                ongoing_leaves = [[category, self.strptime(date_start), self.strptime(date_end)] for category, date_start, date_end, _ in self.교직원["휴직"] if not re.search("육아휴직", category) and ((self.strptime(date_start)<=working_month+relativedelta(months=1)-relativedelta(days=1) and working_month<=self.strptime(date_start)) or (self.strptime(date_end)<=working_month+relativedelta(months=1)-relativedelta(days=1) and working_month<=self.strptime(date_end)) or (working_month<=self.strptime(date_end) and working_month>=self.strptime(date_start)))]
+                for ongoing_leave in ongoing_leaves:
+                    prolation = 0
+                    prolation1, prolation2 = (working_month+relativedelta(months=1)-ongoing_leave[1]).days, (ongoing_leave[2]-working_month).days+1
+                    if prolation1 <= working_month_totaldays and prolation2 <= working_month_totaldays:
+                        prolation = prolation1 + prolation2 - working_month_totaldays
+                    elif prolation1 <= working_month_totaldays:
+                        prolation = prolation1
+                    elif prolation2 <= working_month_totaldays:
+                        prolation = prolation2
+                    else:
+                        prolation = working_month_totaldays
+                    days = (working_month - ongoing_leave[1]).days + 1
+                    prolations.append(prolation)
+                    if ongoing_leave[0] == "질병휴직":                        
+                        if days <= 365:
+                            percents.append(0.7)
+                        elif days <= 365*2:
+                            percents.append(0.5)
+                        else:
+                            percents.append(0)
+                    else:
+                        percents.append(0)
+                return percents, prolations, working_month_totaldays
+            else:
+                return percents, prolations, working_month_totaldays
     작업연도 = str(datetime.now().year)
     def set_working_year(event):
         global 작업연도
@@ -1494,33 +1531,39 @@ if __name__ == "__main__":
                     급여.본봉표 = 급여.차기본봉표
                     급여.작업연도 = str(int(작업연도)+1)
                 values, numers, denom = 급여.육아휴직수당(육아휴직수당)
+                percents, prolations, _ = 급여.신분변동()
+                percents.append(1)
+                prolations.append(denom-sum(numers)-sum(prolations))
                 value = sum(map(lambda value, numer : value*numer/denom, values, numers))
                 salarytable = []
-                salarytable.append(int(급여.본봉()*(denom-sum(numers))/denom//10*10))
+                salarytable.append(int(급여.본봉()*(denom-sum(numers))/denom*(1 if len(prolations)==1 else sum([prolation*percent for prolation, percent in zip(prolations, percents)])/(denom-sum(numers)))//10*10))     
                 salarytable.append(int(급여.정근수당()*(denom-sum(numers))/denom//10*10))
-                salarytable.append(int(급여.정근수당가산금(가산금)*(denom-sum(numers))/denom//10*10))
-                salarytable.append(int(급여.정근수당추가가산금(추가가산금)*(denom-sum(numers))/denom//10*10))
-                salarytable.append(int(급여.정액급식비(급식비[급여.작업연도])*(denom-sum(numers))/denom//10*10))
+                salarytable.append(int(급여.정근수당가산금(가산금)*(denom-sum(numers))/denom*(1 if len(prolations)==1 else sum([prolation*percent for prolation, percent in zip(prolations, percents)])/(denom-sum(numers)))//10*10))
+                salarytable.append(int(급여.정근수당추가가산금(추가가산금)*(denom-sum(numers))/denom*(1 if len(prolations)==1 else sum([prolation*percent for prolation, percent in zip(prolations, percents)])/(denom-sum(numers)))//10*10))
+                if (denom-sum(numers)-sum(prolations[:-1]))>=15:
+                    salarytable.append(int(급여.정액급식비(급식비[급여.작업연도])*(denom-sum(numers)-sum(prolations))/denom//10*10))
+                else:
+                    salarytable.append(0)
                 salarytable.append(int(급여.직급보조비(직급보조비)*(denom-sum(numers))/denom//10*10))
                 if sum(numers) == denom:
                     salarytable.append(0)
                 else:
                     salarytable.append(급여.명절휴가비())
                 salarytable.append(int(급여.관리업무수당()*(denom-sum(numers))/denom//10*10))
-                salarytable.append(int(급여.보전수당(보전수당)*(denom-sum(numers))/denom//10*10))
-                salarytable.append(int(급여.교직수당(교직수당)*(denom-sum(numers))/denom//10*10))
-                salarytable.append(int(급여.교직수당가산금1(원로교사수당)*(denom-sum(numers))/denom//10*10))
-                salarytable.append(int(급여.교직수당가산금2(부장교사수당)*(denom-sum(numers))/denom//10*10))
-                salarytable.append(int(급여.교직수당가산금4(담임교사수당)*(denom-sum(numers))/denom//10*10))
-                salarytable.append(int(급여.교직수당가산금6(보건교사수당)*(denom-sum(numers))/denom//10*10))
-                salarytable.append(int(급여.교직수당가산금10(상담교사수당)*(denom-sum(numers))/denom//10*10))
-                salarytable.append(int(급여.가족수당(가족수당)*(denom-sum(numers))/denom//10*10))
-                if (denom-sum(numers))>=15:
+                salarytable.append(int(급여.보전수당(보전수당)*(denom-sum(numers))/denom*(1 if len(prolations)==1 else sum([prolation*percent for prolation, percent in zip(prolations, percents)])/(denom-sum(numers)))//10*10))
+                salarytable.append(int(급여.교직수당(교직수당)*(denom-sum(numers)-sum(prolations))/denom//10*10))
+                salarytable.append(int(급여.교직수당가산금1(원로교사수당)*(denom-sum(numers)-sum(prolations))/denom//10*10))
+                salarytable.append(int(급여.교직수당가산금2(부장교사수당)*(denom-sum(numers)-sum(prolations))/denom//10*10))
+                salarytable.append(int(급여.교직수당가산금4(담임교사수당)*(denom-sum(numers)-sum(prolations))/denom//10*10))
+                salarytable.append(int(급여.교직수당가산금6(보건교사수당)*(denom-sum(numers)-sum(prolations))/denom//10*10))
+                salarytable.append(int(급여.교직수당가산금10(상담교사수당)*(denom-sum(numers)-sum(prolations))/denom//10*10))
+                salarytable.append(int(급여.가족수당(가족수당)*(denom-sum(numers))/denom*(1 if len(prolations)==1 else sum([prolation*percent for prolation, percent in zip(prolations, percents)])/(denom-sum(numers)))//10*10))
+                if (denom-sum(numers)-sum(prolations[:-1]))>=15:
                     salarytable.append(급여.시간외근무수당정액분(시간외근무수당))
                 else:
-                    salarytable.append(int(급여.시간외근무수당정액분(시간외근무수당)*(denom-sum(numers))/15//10*10))
-                salarytable.append(int(급여.학교운영수당(학교운영수당)*(denom-sum(numers))/denom//10*10))
-                salarytable.append(int(급여.교원연구비()*(denom-sum(numers))/denom//10*10))
+                    salarytable.append(int(급여.시간외근무수당정액분(시간외근무수당)*(denom-sum(numers)-sum(prolations))/15//10*10))
+                salarytable.append(int(급여.학교운영수당(학교운영수당)*(denom-sum(numers)-sum(prolations))/denom//10*10))
+                salarytable.append(int(급여.교원연구비()*(denom-sum(numers))/denom*(1 if len(prolations)==1 else sum([prolation*percent for prolation, percent in zip(prolations, percents)])/(denom-sum(numers)))//10*10))
                 salarytable.append(급여.연가보상비())
                 salarytable.append(int(value//10*10))
                 salarytables.append(salarytable)
