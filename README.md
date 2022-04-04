@@ -24,4 +24,4 @@
 
 7. 수당 관련 config 파일은 C:\Users\\{사용자명}\\.EmploymentCostPreCalculationProgramForSchool에 저장됩니다. 추후 작업연도가 넘어갈 시 해당 파일에 연도별 값을 추가하여 작업이 가능합니다.
 
-Releases에서 실행파일을 다운로드 받을 수 있습니다.
+Releases에서 샘플데이터 다운로드 받을 수 있습니다.
