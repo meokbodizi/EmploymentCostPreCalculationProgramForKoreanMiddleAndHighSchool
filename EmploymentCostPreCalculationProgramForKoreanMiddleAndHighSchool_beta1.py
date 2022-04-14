@@ -1094,6 +1094,50 @@ if __name__ == "__main__":
                         real_working_months = (working_month - self.strptime(self.교직원["현부서임용일"])).days//30
                     else:
                         real_working_months = (working_month - self.strptime(self.교직원["현부서임용일"])).days//30 - 1
+            if self.현재월 == 7:
+                working_total_days_list = []
+                for i in range(0,6):
+                    working_month_temp = (datetime(int(작업연도), 1, 1)+relativedelta(months=i))                    
+                    working_month_totaldays = (working_month_temp+relativedelta(months=1)-relativedelta(days=1)).day
+                    prolation = 0
+                    if "휴직" in self.교직원.keys():                        
+                        ongoing_leaves = [[category, self.strptime(date_start), self.strptime(date_end)] for category, date_start, date_end, _ in self.교직원["휴직"] if ((self.strptime(date_start)<=working_month_temp+relativedelta(months=1)-relativedelta(days=1) and working_month_temp<=self.strptime(date_start)) or (self.strptime(date_end)<=working_month_temp+relativedelta(months=1)-relativedelta(days=1) and working_month_temp<=self.strptime(date_end)) or (working_month_temp<=self.strptime(date_end) and working_month_temp>=self.strptime(date_start)))]
+                        for ongoing_leave in ongoing_leaves:                            
+                            prolation1, prolation2 = (working_month_temp+relativedelta(months=1)-ongoing_leave[1]).days, (ongoing_leave[2]-working_month_temp).days+1
+                            if prolation1 <= working_month_totaldays and prolation2 <= working_month_totaldays:
+                                prolation = prolation1 + prolation2 - working_month_totaldays
+                            elif prolation1 <= working_month_totaldays:
+                                prolation = prolation1
+                            elif prolation2 <= working_month_totaldays:
+                                prolation = prolation2
+                            else:
+                                prolation = working_month_totaldays
+                            days = (working_month_temp - ongoing_leave[1]).days + 1
+                            prolation =+ prolation
+                    working_total_days_list.append(working_month_totaldays - prolation)
+                real_working_months -= sum([1 for working_total_days in working_total_days_list if working_total_days < 15])
+            elif self.현재월 == 13:
+                working_total_days_list = []
+                for i in range(6,12):
+                    working_month_temp = (datetime(int(작업연도), 1, 1)+relativedelta(months=i))                    
+                    working_month_totaldays = (working_month_temp+relativedelta(months=1)-relativedelta(days=1)).day
+                    prolation = 0
+                    if "휴직" in self.교직원.keys():
+                        ongoing_leaves = [[category, self.strptime(date_start), self.strptime(date_end)] for category, date_start, date_end, _ in self.교직원["휴직"] if ((self.strptime(date_start)<=working_month_temp+relativedelta(months=1)-relativedelta(days=1) and working_month_temp<=self.strptime(date_start)) or (self.strptime(date_end)<=working_month_temp+relativedelta(months=1)-relativedelta(days=1) and working_month_temp<=self.strptime(date_end)) or (working_month_temp<=self.strptime(date_end) and working_month_temp>=self.strptime(date_start)))]
+                        for ongoing_leave in ongoing_leaves:                            
+                            prolation1, prolation2 = (working_month_temp+relativedelta(months=1)-ongoing_leave[1]).days, (ongoing_leave[2]-working_month_temp).days+1
+                            if prolation1 <= working_month_totaldays and prolation2 <= working_month_totaldays:
+                                prolation = prolation1 + prolation2 - working_month_totaldays
+                            elif prolation1 <= working_month_totaldays:
+                                prolation = prolation1
+                            elif prolation2 <= working_month_totaldays:
+                                prolation = prolation2
+                            else:
+                                prolation = working_month_totaldays
+                            days = (working_month_temp - ongoing_leave[1]).days + 1
+                            prolation =+ prolation
+                    working_total_days_list.append(working_month_totaldays - prolation)
+                real_working_months -= sum([1 for working_total_days in working_total_days_list if working_total_days < 15])
             if self.현재월 in [13,7]:
                 if self.교직원["직종"] == "기간제교원":
                     if self.교직원["근무연한"][0] + 추가근무연한일수//365 >= 10:
@@ -1639,6 +1683,68 @@ if __name__ == "__main__":
             pickle.dump(employeelist, f)
     salary_save_employeelist_btn = Button(root, text="인사기록 저장하기", command=lambda: save_employeelist())
     salary_save_employeelist_btn.place(x=645,y=430+25+35-170)
+
+    def save_salary_table_for_summaries(급여목록):
+        wb = openpyxl.Workbook()
+        ws = wb.active
+        for 급여 in 급여목록:
+            temp = 급여.salary_table["명절휴가비"].tolist()
+            temp = [i for i in temp if i != 0]                
+            df = 급여.salary_table               
+            df = df.sum(axis=0)
+            if 급여.교직원["퇴직일"] != "" and datetime(*map(int, 급여.교직원["퇴직일"].split("-"))) < datetime(int(작업연도), 3, 1):
+                continue
+            ws.append([급여.교직원["성명"],
+                       rrn_to_datetime(급여.교직원["주민번호"]).date(),
+                       급여.교직원["직종"],
+                       '',
+                       '',
+                       급여.교직원["현부서임용일"],
+                       "",
+                       (relativedelta(years = 급여.교직원["근무연한"][0], months = 급여.교직원["근무연한"][1], days = 급여.교직원["근무연한"][2]) + datetime(int(작업연도), 3, 1) - datetime(*map(int, 급여.교직원["승급년월일"].split("-")))).days//365,
+                       급여.교직원['호봉'],
+                       "-".join(급여.교직원["승급년월일"].split("-")[1:]),
+                       df["본봉"],
+                       df["정근수당"],
+                       df["정근수당가산금"],
+                       df["정근수당추가가산금"],
+                       df["정액급식비"],
+                       df["교직수당"],
+                       df["교직수당가산금1"],
+                       df["교직수당가산금2"],
+                       "",
+                       df["교직수당가산금4"],
+                       "",
+                       df["교직수당가산금6"],
+                       "",
+                       "",
+                       "",
+                       df["교직수당가산금10"],
+                       df["보전수당"],
+                       df["교원연구비"],
+                       0 if sum(temp) == 0 else temp[0],
+                       0 if sum(temp) == 0 else temp[1],
+                       df["명절휴가비"],
+                       "",
+                       "",
+                       "",
+                       df["시간외근무수당정액분"] if 급여.교직원["직종"]=="행정직" else df["시간외근무수당정액분"]*11/12//10*10,
+                       df["시간외근무수당정액분"]/12//10*10,
+                       df["관리업무수당"],
+                       df["육아휴직수당"],
+                       df["직급보조비"],
+                       df["연가보상비"],
+                       "",
+                       "",
+                       df["학교운영수당"],
+                       "",
+                       "",
+                       ""
+                       ])
+        wb.save(f"salarytable_작업연도{작업연도}_총괄표_{datetime.now().strftime('%Y-%m-%d-%H%M%S')}.xlsx")
+        showinfo("저장", "완료되었습니다!")
+    save_salary_table_for_summaries_btn = Button(root, text="재정결함 총괄표저장", command=lambda: save_salary_table_for_summaries(급여목록))
+    save_salary_table_for_summaries_btn.place(x=645,y=460+25+35-170)
 
     # root.config(menu=menu)
     root.mainloop()
