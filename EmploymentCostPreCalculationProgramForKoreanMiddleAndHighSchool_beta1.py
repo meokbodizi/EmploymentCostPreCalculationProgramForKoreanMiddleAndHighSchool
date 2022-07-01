@@ -1114,6 +1114,9 @@ if __name__ == "__main__":
                                 prolation = working_month_totaldays
                             days = (working_month_temp - ongoing_leave[1]).days + 1
                             prolation =+ prolation
+                            # 현재 휴직중인 경우 정근수당 미지급
+                            if (working_month - ongoing_leave[1]).days >= 0 and (ongoing_leave[2] - working_month).days > 0 :
+                                return int(0)
                     working_total_days_list.append(working_month_totaldays - prolation)
                 real_working_months -= sum([1 for working_total_days in working_total_days_list if working_total_days < 15])
             elif self.현재월 == 13:
@@ -1136,6 +1139,9 @@ if __name__ == "__main__":
                                 prolation = working_month_totaldays
                             days = (working_month_temp - ongoing_leave[1]).days + 1
                             prolation =+ prolation
+                            # 현재 휴직중인 경우 정근수당 미지급
+                            if (working_month - ongoing_leave[1]).days >= 0 and (ongoing_leave[2] - working_month).days > 0 :
+                                return int(0)
                     working_total_days_list.append(working_month_totaldays - prolation)
                 real_working_months -= sum([1 for working_total_days in working_total_days_list if working_total_days < 15])
             if self.현재월 in [13,7]:
@@ -1702,7 +1708,7 @@ if __name__ == "__main__":
                        급여.교직원["현부서임용일"],
                        "",
                        (relativedelta(years = 급여.교직원["근무연한"][0], months = 급여.교직원["근무연한"][1], days = 급여.교직원["근무연한"][2]) + datetime(int(작업연도), 3, 1) - datetime(*map(int, 급여.교직원["승급년월일"].split("-")))).days//365,
-                       급여.교직원['호봉'],
+                       급여.교직원['호봉']+(datetime(int(작업연도), 3, 1) - datetime(*map(int, 급여.교직원["승급년월일"].split("-")))).days//365,
                        "-".join(급여.교직원["승급년월일"].split("-")[1:]),
                        df["본봉"],
                        df["정근수당"],
