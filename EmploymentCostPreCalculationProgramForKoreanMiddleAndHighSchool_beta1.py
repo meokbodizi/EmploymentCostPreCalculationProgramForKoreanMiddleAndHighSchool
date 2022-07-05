@@ -1118,7 +1118,7 @@ if __name__ == "__main__":
                             if (working_month - ongoing_leave[1]).days >= 0 and (ongoing_leave[2] - working_month).days > 0 :
                                 return int(0)
                     working_total_days_list.append(working_month_totaldays - prolation)
-                real_working_months -= sum([1 for working_total_days in working_total_days_list if working_total_days < 15])
+                real_working_months -= sum([1 for working_total_days in working_total_days_list if working_total_days < 30])
             elif self.현재월 == 13:
                 working_total_days_list = []
                 for i in range(6,12):
@@ -1143,7 +1143,7 @@ if __name__ == "__main__":
                             if (working_month - ongoing_leave[1]).days >= 0 and (ongoing_leave[2] - working_month).days > 0 :
                                 return int(0)
                     working_total_days_list.append(working_month_totaldays - prolation)
-                real_working_months -= sum([1 for working_total_days in working_total_days_list if working_total_days < 15])
+                real_working_months -= sum([1 for working_total_days in working_total_days_list if working_total_days < 30])
             if self.현재월 in [13,7]:
                 if self.교직원["직종"] == "기간제교원":
                     if self.교직원["근무연한"][0] + 추가근무연한일수//365 >= 10:
