@@ -1486,9 +1486,12 @@ if __name__ == "__main__":
         def 연가보상비(self):
             working_month = (datetime(int(작업연도), 1, 1)+relativedelta(months=self.현재월-1))
             if "연가보상일수" in self.교직원.keys() and self.교직원["연가보상일수"] != "":
-                if working_month.month == 6:
-                    return self.본봉()*0.86/30*5//10*10
-                elif working_month.month == 12:
+                if working_month.month == 7:
+                    self.현재월 = 6
+                    total = self.본봉()*0.86/30*5//10*10
+                    self.현재월 = 7
+                    return total
+                elif working_month.month == 13:
                     제외월 = 0
                     if "휴직" in self.교직원.keys():
                         ongoing_leaves = [[self.strptime(date_start), self.strptime(date_end)] for _, date_start, date_end, _ in self.교직원["휴직"] if self.strptime(date_start) < datetime(int(작업연도), 1, 1) and datetime(int(작업연도), 12, 31) < self.strptime(date_end) or datetime(int(작업연도), 1, 1) <= self.strptime(date_start) and self.strptime(date_start) <= datetime(int(작업연도), 12, 31) or datetime(int(작업연도), 1, 1) <= self.strptime(date_end) and self.strptime(date_end) <= datetime(int(작업연도), 12, 31)]
@@ -1497,10 +1500,11 @@ if __name__ == "__main__":
                                 if (ongoing_leaves[0][0] - datetime(int(작업연도), i, 1)).days < 15 and (-15 < (ongoing_leaves[0][1] - datetime(int(작업연도), i, (datetime(int(작업연도), i, 1)+relativedelta(months=1)-relativedelta(days=1)).day)).days):
                                     제외월 += 1
                     연가보상일수 = int(int(self.교직원["연가보상일수"])*(12-제외월)/12)
+                    self.현재월 = 12
                     total = self.본봉()*0.86/30*연가보상일수//10*10
-                    saved, self.현재월 = self.현재월, 6
+                    self.현재월 = 6
                     partial = self.본봉()*0.86/30*5//10*10
-                    self.현재월 = saved
+                    self.현재월 = 13
                     return total - partial
                 else:
                     return int(0)
