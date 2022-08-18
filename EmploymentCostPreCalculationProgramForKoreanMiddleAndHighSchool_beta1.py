@@ -1491,7 +1491,7 @@ if __name__ == "__main__":
                     total = self.본봉()*0.86/30*5//10*10
                     self.현재월 = 7
                     return total
-                elif working_month.month == 13:
+                elif working_month.month == 1:
                     제외월 = 0
                     if "휴직" in self.교직원.keys():
                         ongoing_leaves = [[self.strptime(date_start), self.strptime(date_end)] for _, date_start, date_end, _ in self.교직원["휴직"] if self.strptime(date_start) < datetime(int(작업연도), 1, 1) and datetime(int(작업연도), 12, 31) < self.strptime(date_end) or datetime(int(작업연도), 1, 1) <= self.strptime(date_start) and self.strptime(date_start) <= datetime(int(작업연도), 12, 31) or datetime(int(작업연도), 1, 1) <= self.strptime(date_end) and self.strptime(date_end) <= datetime(int(작업연도), 12, 31)]
