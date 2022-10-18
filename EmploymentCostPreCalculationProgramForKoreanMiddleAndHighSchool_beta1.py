@@ -1733,7 +1733,6 @@ if __name__ == "__main__":
                 for ongoing_leave in ongoing_leaves:
                     prolation = 0
                     prolation1, prolation2 = (working_month+relativedelta(months=1)-ongoing_leave[1]).days, (ongoing_leave[2]-working_month).days+1
-                    print("신분변동:",prolation1, prolation2, prolation1 + prolation2 - working_month_totaldays)
                     if prolation1 <= working_month_totaldays and prolation2 <= working_month_totaldays:
                         prolation = prolation1 + prolation2 - working_month_totaldays
                     elif prolation1 <= working_month_totaldays:
