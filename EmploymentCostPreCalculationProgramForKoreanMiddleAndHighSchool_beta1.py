@@ -20,6 +20,7 @@ import os
 import pickle
 from functools import reduce
 import json
+import numpy as np
 
 if __name__ == "__main__":
 
@@ -153,7 +154,41 @@ if __name__ == "__main__":
                 employee_career_treeview.delete(item)
             if "경력" in data.keys():
                 [employee_career_treeview.insert("",END,values=(category, position, public, rate, datetime_start, datetime_end)) for category, position, public, rate, datetime_start, datetime_end in data["경력"]]
-
+            if "감봉시작일" in data.keys() and data["감봉시작일"] != "":
+                employee_paycut_start_year_box.current(employee_paycut_start_year_box_var.index(data["감봉시작일"].split("-")[0]))
+                employee_paycut_start_month_box.current(employee_paycut_start_month_box_var.index(data["감봉시작일"].split("-")[1]))
+                employee_paycut_start_day_box.current(employee_paycut_start_day_box_var.index(data["감봉시작일"].split("-")[2]))
+            else:
+                employee_paycut_start_year_box.current(0)
+                employee_paycut_start_month_box.current(0)
+                employee_paycut_start_day_box.current(0)
+            if "감봉종료일" in data.keys() and data["감봉종료일"] != "":
+                employee_paycut_end_year_box.current(employee_paycut_end_year_box_var.index(data["감봉종료일"].split("-")[0]))
+                employee_paycut_end_month_box.current(employee_paycut_end_month_box_var.index(data["감봉종료일"].split("-")[1]))
+                employee_paycut_end_day_box.current(employee_paycut_end_day_box_var.index(data["감봉종료일"].split("-")[2]))
+            else:
+                employee_paycut_end_year_box.current(0)
+                employee_paycut_end_month_box.current(0)
+                employee_paycut_end_day_box.current(0)
+            employee_paycut_rate_entry.delete(0,END)
+            if "감봉율" in data.keys():
+                employee_paycut_rate_entry.insert(0,data["감봉율"])
+            if "승급제한시작일" in data.keys() and data["승급제한시작일"] != "":
+                employee_upgrade_restriction_start_year_box.current(employee_upgrade_restriction_start_year_box_var.index(data["승급제한시작일"].split("-")[0]))
+                employee_upgrade_restriction_start_month_box.current(employee_upgrade_restriction_start_month_box_var.index(data["승급제한시작일"].split("-")[1]))
+                employee_upgrade_restriction_start_day_box.current(employee_upgrade_restriction_start_day_box_var.index(data["승급제한시작일"].split("-")[2]))
+            else:
+                employee_upgrade_restriction_start_year_box.current(0)
+                employee_upgrade_restriction_start_month_box.current(0)
+                employee_upgrade_restriction_start_day_box.current(0)
+            if "승급제한종료일" in data.keys() and data["승급제한종료일"] != "":
+                employee_upgrade_restriction_end_year_box.current(employee_upgrade_restriction_end_year_box_var.index(data["승급제한종료일"].split("-")[0]))
+                employee_upgrade_restriction_end_month_box.current(employee_upgrade_restriction_end_month_box_var.index(data["승급제한종료일"].split("-")[1]))
+                employee_upgrade_restriction_end_day_box.current(employee_upgrade_restriction_end_day_box_var.index(data["승급제한종료일"].split("-")[2]))
+            else:
+                employee_upgrade_restriction_end_year_box.current(0)
+                employee_upgrade_restriction_end_month_box.current(0)
+                employee_upgrade_restriction_end_day_box.current(0)
     employeelist_treeview.bind("<<TreeviewSelect>>", on_selection_treeview)
 
     # employeelist_treeview_scrollbar = ttk.Scrollbar(root, orient=VERTICAL, command=employeelist_treeview.yview)
@@ -392,6 +427,130 @@ if __name__ == "__main__":
     employee_retire_day_box = ttk.Combobox(root, height=5, width=2, state='readonly', values=employee_retire_day_box_var)
     employee_retire_day_box.current(0)
     employee_retire_day_box.place(x=685-200+100, y=75)
+
+    employee_paycut_start_label = Label(root, text="감봉기간")
+    employee_paycut_start_label.place(x=510-470+100, y=360)
+    employee_paycut_start_year_label = Label(root, text="년")
+    employee_paycut_start_year_label.place(x=610-440+100, y=360)
+    employee_paycut_start_year_box_var = [""]+[str(i) for i in range(datetime.now().year+1,1950,-1)]
+    employee_paycut_start_year_box = ttk.Combobox(root, height=5, width=4, state='readonly', values=employee_paycut_start_year_box_var)
+    employee_paycut_start_year_box.current(0)
+    employee_paycut_start_year_box.place(x=560-440+100, y=360)
+    employee_paycut_start_month_label = Label(root, text="월")
+    employee_paycut_start_month_label.place(x=665-440+100, y=360)
+    employee_paycut_start_month_box_var = [""]+[f"{i}" for i in range(1,13)]
+    employee_paycut_start_month_box = ttk.Combobox(root, height=5, width=2, state='readonly', values=employee_paycut_start_month_box_var)
+    employee_paycut_start_month_box.current(0)
+    employee_paycut_start_month_box.place(x=630-440+100, y=360)
+    def update_employee_paycut_start_day_box(event):
+        if employee_paycut_start_year_box.get() == "":
+            showinfo("경고", "연도를 선택해주십시오.")
+            return None
+        employee_paycut_start_day_box['values'] = [""] + [str(i) for i in range(1, (datetime(int(employee_paycut_start_year_box.get()), int(employee_paycut_start_month_box.get()), 1) + relativedelta(months=1) - relativedelta(days=1)).day+1)]
+    employee_paycut_start_month_box.bind('<<ComboboxSelected>>', update_employee_paycut_start_day_box)
+    employee_paycut_start_day_label = Label(root, text="일")
+    employee_paycut_start_day_label.place(x=720-440+100, y=360)
+    employee_paycut_start_day_box_var = [""]+[str(i) for i in range(1,32)]
+    employee_paycut_start_day_box = ttk.Combobox(root, height=5, width=2, state='readonly', values=employee_paycut_start_day_box_var)
+    employee_paycut_start_day_box.current(0)
+    employee_paycut_start_day_box.place(x=685-440+100, y=360)
+
+    employee_paycut_end_label = Label(root, text="~")
+    employee_paycut_end_label.place(x=510-470+360, y=360)
+    employee_paycut_end_year_label = Label(root, text="년")
+    employee_paycut_end_year_label.place(x=610-440+300, y=360)
+    employee_paycut_end_year_box_var = [""]+[str(i) for i in range(datetime.now().year+5,1950,-1)]
+    employee_paycut_end_year_box = ttk.Combobox(root, height=5, width=4, state='readonly', values=employee_paycut_end_year_box_var)
+    employee_paycut_end_year_box.current(0)
+    employee_paycut_end_year_box.place(x=560-440+300, y=360)
+    employee_paycut_end_month_label = Label(root, text="월")
+    employee_paycut_end_month_label.place(x=665-440+300, y=360)
+    employee_paycut_end_month_box_var = [""]+[f"{i}" for i in range(1,13)]
+    employee_paycut_end_month_box = ttk.Combobox(root, height=5, width=2, state='readonly', values=employee_paycut_end_month_box_var)
+    employee_paycut_end_month_box.current(0)
+    employee_paycut_end_month_box.place(x=630-440+300, y=360)
+    def update_employee_paycut_end_day_box(event):
+        if employee_paycut_end_year_box.get() == "":
+            showinfo("경고", "연도를 선택해주십시오.")
+            return None
+        employee_paycut_end_day_box['values'] = [""] + [str(i) for i in range(1, (datetime(int(employee_paycut_end_year_box.get()), int(employee_paycut_end_month_box.get()), 1) + relativedelta(months=1) - relativedelta(days=1)).day+1)]
+    employee_paycut_end_month_box.bind('<<ComboboxSelected>>', update_employee_paycut_end_day_box)
+    employee_paycut_end_day_label = Label(root, text="일")
+    employee_paycut_end_day_label.place(x=720-440+300, y=360)
+    employee_paycut_end_day_box_var = [""]+[str(i) for i in range(1,32)]
+    employee_paycut_end_day_box = ttk.Combobox(root, height=5, width=2, state='readonly', values=employee_paycut_end_day_box_var)
+    employee_paycut_end_day_box.current(0)
+    employee_paycut_end_day_box.place(x=685-440+300, y=360)
+
+    def employee_paycut_rate_entry_chk(input_name):
+        if re.search("^[0-9]{1,3}$", input_name) and int(input_name)<=100:
+            return True
+        elif input_name =="":
+            return True
+        else:
+            return False
+    employee_paycut_rate_entry_chkreg=root.register(employee_paycut_rate_entry_chk)
+    employee_paycut_rate_entry = Entry(root, width=4)
+    employee_paycut_rate_entry.config(validate="key", validatecommand=(employee_paycut_rate_entry_chkreg,"%P"))
+    employee_paycut_rate_entry.place(x=720-440+320, y=360)
+    employee_paycut_label = Label(root, text="%")
+    employee_paycut_label.place(x=720-440+320+30, y=360)
+    employee_paycut_label = Label(root, text="감봉율")
+    employee_paycut_label.place(x=720-440+320, y=380)    
+
+    employee_upgrade_restriction_start_label = Label(root, text="승급제한기간")
+    employee_upgrade_restriction_start_label.place(x=510-470+100, y=380)
+    employee_upgrade_restriction_start_year_label = Label(root, text="년")
+    employee_upgrade_restriction_start_year_label.place(x=610-440+100, y=380)
+    employee_upgrade_restriction_start_year_box_var = [""]+[str(i) for i in range(datetime.now().year+1,1950,-1)]
+    employee_upgrade_restriction_start_year_box = ttk.Combobox(root, height=5, width=4, state='readonly', values=employee_upgrade_restriction_start_year_box_var)
+    employee_upgrade_restriction_start_year_box.current(0)
+    employee_upgrade_restriction_start_year_box.place(x=560-440+100, y=380)
+    employee_upgrade_restriction_start_month_label = Label(root, text="월")
+    employee_upgrade_restriction_start_month_label.place(x=665-440+100, y=380)
+    employee_upgrade_restriction_start_month_box_var = [""]+[f"{i}" for i in range(1,13)]
+    employee_upgrade_restriction_start_month_box = ttk.Combobox(root, height=5, width=2, state='readonly', values=employee_upgrade_restriction_start_month_box_var)
+    employee_upgrade_restriction_start_month_box.current(0)
+    employee_upgrade_restriction_start_month_box.place(x=630-440+100, y=380)
+    def update_employee_upgrade_restriction_start_day_box(event):
+        if employee_upgrade_restriction_start_year_box.get() == "":
+            showinfo("경고", "연도를 선택해주십시오.")
+            return None
+        employee_upgrade_restriction_start_day_box['values'] = [""] + [str(i) for i in range(1, (datetime(int(employee_upgrade_restriction_start_year_box.get()), int(employee_upgrade_restriction_start_month_box.get()), 1) + relativedelta(months=1) - relativedelta(days=1)).day+1)]
+    employee_upgrade_restriction_start_month_box.bind('<<ComboboxSelected>>', update_employee_upgrade_restriction_start_day_box)
+    employee_upgrade_restriction_start_day_label = Label(root, text="일")
+    employee_upgrade_restriction_start_day_label.place(x=720-440+100, y=380)
+    employee_upgrade_restriction_start_day_box_var = [""]+[str(i) for i in range(1,32)]
+    employee_upgrade_restriction_start_day_box = ttk.Combobox(root, height=5, width=2, state='readonly', values=employee_upgrade_restriction_start_day_box_var)
+    employee_upgrade_restriction_start_day_box.current(0)
+    employee_upgrade_restriction_start_day_box.place(x=685-440+100, y=380)
+
+    employee_upgrade_restriction_end_label = Label(root, text="~")
+    employee_upgrade_restriction_end_label.place(x=510-470+360, y=380)
+    employee_upgrade_restriction_end_year_label = Label(root, text="년")
+    employee_upgrade_restriction_end_year_label.place(x=610-440+300, y=380)
+    employee_upgrade_restriction_end_year_box_var = [""]+[str(i) for i in range(datetime.now().year+5,1950,-1)]
+    employee_upgrade_restriction_end_year_box = ttk.Combobox(root, height=5, width=4, state='readonly', values=employee_upgrade_restriction_end_year_box_var)
+    employee_upgrade_restriction_end_year_box.current(0)
+    employee_upgrade_restriction_end_year_box.place(x=560-440+300, y=380)
+    employee_upgrade_restriction_end_month_label = Label(root, text="월")
+    employee_upgrade_restriction_end_month_label.place(x=665-440+300, y=380)
+    employee_upgrade_restriction_end_month_box_var = [""]+[f"{i}" for i in range(1,13)]
+    employee_upgrade_restriction_end_month_box = ttk.Combobox(root, height=5, width=2, state='readonly', values=employee_upgrade_restriction_end_month_box_var)
+    employee_upgrade_restriction_end_month_box.current(0)
+    employee_upgrade_restriction_end_month_box.place(x=630-440+300, y=380)
+    def update_employee_upgrade_restriction_end_day_box(event):
+        if employee_upgrade_restriction_end_year_box.get() == "":
+            showinfo("경고", "연도를 선택해주십시오.")
+            return None
+        employee_upgrade_restriction_end_day_box['values'] = [""] + [str(i) for i in range(1, (datetime(int(employee_upgrade_restriction_end_year_box.get()), int(employee_upgrade_restriction_end_month_box.get()), 1) + relativedelta(months=1) - relativedelta(days=1)).day+1)]
+    employee_upgrade_restriction_end_month_box.bind('<<ComboboxSelected>>', update_employee_upgrade_restriction_end_day_box)
+    employee_upgrade_restriction_end_day_label = Label(root, text="일")
+    employee_upgrade_restriction_end_day_label.place(x=720-440+300, y=380)
+    employee_upgrade_restriction_end_day_box_var = [""]+[str(i) for i in range(1,32)]
+    employee_upgrade_restriction_end_day_box = ttk.Combobox(root, height=5, width=2, state='readonly', values=employee_upgrade_restriction_end_day_box_var)
+    employee_upgrade_restriction_end_day_box.current(0)
+    employee_upgrade_restriction_end_day_box.place(x=685-440+300, y=380)
 
 
     def employee_family_add(root):
@@ -957,6 +1116,11 @@ if __name__ == "__main__":
             employeelist[ind]["가산정원"]=employee_special_class_btn.get()
             employeelist[ind]["원로교사"]=employee_elder_radiobtn_var.get()
             employeelist[ind]["연가보상일수"]=employee_anual_leave_compensation_entry.get()
+            employeelist[ind]["감봉시작일"]="" if employee_paycut_start_year_box.get() == "" or employee_paycut_start_month_box.get() == "" or employee_paycut_start_day_box.get() == "" else "-".join([employee_paycut_start_year_box.get(), employee_paycut_start_month_box.get(), employee_paycut_start_day_box.get()])
+            employeelist[ind]["감봉종료일"]="" if employee_paycut_end_year_box.get() == "" or employee_paycut_end_month_box.get() == "" or employee_paycut_end_day_box.get() == "" else "-".join([employee_paycut_end_year_box.get(), employee_paycut_end_month_box.get(), employee_paycut_end_day_box.get()])
+            employeelist[ind]["감봉율"]=employee_paycut_rate_entry.get()
+            employeelist[ind]["승급제한시작일"]="" if employee_upgrade_restriction_start_year_box.get() == "" or employee_upgrade_restriction_start_month_box.get() == "" or employee_upgrade_restriction_start_day_box.get() == "" else "-".join([employee_upgrade_restriction_start_year_box.get(), employee_upgrade_restriction_start_month_box.get(), employee_upgrade_restriction_start_day_box.get()])
+            employeelist[ind]["승급제한종료일"]="" if employee_upgrade_restriction_end_year_box.get() == "" or employee_upgrade_restriction_end_month_box.get() == "" or employee_upgrade_restriction_end_day_box.get() == "" else "-".join([employee_upgrade_restriction_end_year_box.get(), employee_upgrade_restriction_end_month_box.get(), employee_upgrade_restriction_end_day_box.get()])
             treeview.delete(selection)
             treeview.insert("", ind, values=(employeelist[ind]["id"],employeelist[ind]["성명"]))
     employeelist_modbtn = Button(root, text="수정", command=lambda: employeelist_mod(employeelist_treeview))
@@ -1043,6 +1207,19 @@ if __name__ == "__main__":
         else:
             return datetime(int("19"+rrn.split()[0][:2]),int(rrn.split("-")[0][2:4]),int(rrn.split("-")[0][4:6]))
 
+    def merge_date_ranges(data):
+        result = []
+        t_old = data[0]
+        for t in data[1:]:
+            if t_old[1] >= t[0]:  #I assume that the data is sorted already
+                t_old = ((min(t_old[0], t[0]), max(t_old[1], t[1])))
+            else:
+                result.append(t_old)
+                t_old = t
+        else:
+            result.append(t_old)
+        return result
+
     class 급여생성:
         본봉표 = None
         def __init__(self, 교직원, 작업연도, 명절년월일):
@@ -1065,7 +1242,30 @@ if __name__ == "__main__":
                 else:
                     호봉 = self.교직원['호봉']+(working_month - datetime(int(self.교직원['승급년월일'].split("-")[0]),3,1)).days//365
             else:
-                호봉 = self.교직원['호봉']+(working_month + relativedelta(months=self.교직원['근무연한'][1], days=self.교직원['근무연한'][2]) - self.strptime(self.교직원['승급년월일'])).days//365
+                if '휴직' in self.교직원.keys():
+                    all_sick_leaves = [(self.strptime(date_start), self.strptime(date_end)) for category, date_start, date_end, _ in self.교직원["휴직"] if re.search("질병휴직", category)]
+                else:
+                    all_sick_leaves = []
+                if '승급제한시작일' in self.교직원.keys():
+                    upgrade_restriction_duration = (self.strptime(self.교직원['승급제한시작일']), self.strptime(self.교직원['승급제한종료일']))
+                else:
+                    upgrade_restriction_duration = []
+                all_upgrade_restriction_durations = all_sick_leaves + [upgrade_restriction_duration]
+                all_upgrade_restriction_durations = merge_date_ranges(all_upgrade_restriction_durations)
+                if all_upgrade_restriction_durations != [[]] and [num for num, dates in enumerate(all_upgrade_restriction_durations) if dates[0] <= working_month and working_month < dates[1]] != []:
+                    num = [num for num, dates in enumerate(all_upgrade_restriction_durations) if dates[0] <= working_month and working_month < dates[1]][0]
+                    full_upgrade_restriction_duration = working_month - all_upgrade_restriction_durations[num][0]
+                    for i in range(num):
+                        full_upgrade_restriction_duration += all_upgrade_restriction_durations[i][1] - all_upgrade_restriction_durations[i][0]
+                    호봉 = self.교직원['호봉']+(working_month + relativedelta(months=self.교직원['근무연한'][1], days=self.교직원['근무연한'][2]) - self.strptime(self.교직원['승급년월일']) - full_upgrade_restriction_duration).days//365.25
+                elif all_upgrade_restriction_durations != [[]] and [num for num, dates in enumerate(all_upgrade_restriction_durations) if dates[1] <= working_month] != []:
+                    num = max([num for num, dates in enumerate(all_upgrade_restriction_durations) if dates[1] <= working_month])
+                    full_upgrade_restriction_duration = all_upgrade_restriction_duration[num][1] - all_upgrade_restriction_duration[num][0]
+                    for i in range(num):
+                        full_upgrade_restriction_duration += all_upgrade_restriction_durations[i][1] - all_upgrade_restriction_durations[i][0]
+                    호봉 = self.교직원['호봉']+(working_month + relativedelta(months=self.교직원['근무연한'][1], days=self.교직원['근무연한'][2]) - self.strptime(self.교직원['승급년월일']) - full_upgrade_restriction_duration).days//365.25
+                else:
+                    호봉 = self.교직원['호봉']+(working_month + relativedelta(months=self.교직원['근무연한'][1], days=self.교직원['근무연한'][2]) - self.strptime(self.교직원['승급년월일'])).days//365.25
             if self.교직원['급'] == '':
                 if 호봉 > 50:
                     return int(self.본봉표[3][self.본봉표[3]['호봉']==50]['봉급'])
@@ -1525,6 +1725,7 @@ if __name__ == "__main__":
                 for ongoing_leave in ongoing_leaves:
                     prolation = 0
                     prolation1, prolation2 = (working_month+relativedelta(months=1)-ongoing_leave[1]).days, (ongoing_leave[2]-working_month).days+1
+                    print("신분변동:",prolation1, prolation2, prolation1 + prolation2 - working_month_totaldays)
                     if prolation1 <= working_month_totaldays and prolation2 <= working_month_totaldays:
                         prolation = prolation1 + prolation2 - working_month_totaldays
                     elif prolation1 <= working_month_totaldays:
@@ -1542,6 +1743,39 @@ if __name__ == "__main__":
                             percents.append(0.5)
                         else:
                             percents.append(0)
+                    else:
+                        percents.append(0)
+                return percents, prolations, working_month_totaldays
+            else:
+                return percents, prolations, working_month_totaldays
+
+        def 징계(self):
+            working_month = (datetime(int(작업연도), 1, 1)+relativedelta(months=self.현재월-1))
+            percents = []
+            prolations = []
+            working_month_totaldays = (working_month+relativedelta(months=1)-relativedelta(days=1)).day
+            if self.교직원['현부서임용일'] != "" and self.strptime(self.교직원['현부서임용일']) > working_month:
+                return percents, prolations, working_month_totaldays
+            if self.교직원['퇴직일'] != "" and self.strptime(self.교직원['퇴직일']) <= working_month:
+                return percents, prolations, working_month_totaldays
+            if "감봉시작일" in self.교직원.keys():
+                date_start, date_end = self.strptime(self.교직원["감봉시작일"]), self.strptime(self.교직원["감봉종료일"])
+                if ((date_start<=working_month+relativedelta(months=1)-relativedelta(days=1) and working_month<=date_start) or (date_end<=working_month+relativedelta(months=1)-relativedelta(days=1) and working_month<=date_end) or (working_month<=date_end and working_month>=date_start)):
+                    ongoing_leave = [date_start, date_end]
+                    prolation = 0
+                    prolation1, prolation2 = (working_month+relativedelta(months=1)-ongoing_leave[0]).days, (ongoing_leave[1]-working_month).days+1
+                    if prolation1 <= working_month_totaldays and prolation2 <= working_month_totaldays:
+                        prolation = prolation1 + prolation2 - working_month_totaldays
+                    elif prolation1 <= working_month_totaldays:
+                        prolation = prolation1
+                    elif prolation2 <= working_month_totaldays:
+                        prolation = prolation2
+                    else:
+                        prolation = working_month_totaldays
+                    days = (working_month - ongoing_leave[0]).days + 1
+                    prolations.append(prolation)
+                    if "감봉율" in self.교직원.keys():
+                        percents.append(int(self.교직원["감봉율"])/100)
                     else:
                         percents.append(0)
                 return percents, prolations, working_month_totaldays
@@ -1586,6 +1820,8 @@ if __name__ == "__main__":
                     급여.작업연도 = str(int(작업연도)+1)
                 values, numers, denom = 급여.육아휴직수당(육아휴직수당)
                 percents, prolations, _ = 급여.신분변동()
+                percents2, prolations2, working_month_totaldays2 = 급여.징계()
+                print(percents2, prolations2, working_month_totaldays2)
                 percents.append(1)
                 prolations.append(denom-sum(numers)-sum(prolations))
                 value = sum(map(lambda value, numer : value*numer/denom, values, numers))
