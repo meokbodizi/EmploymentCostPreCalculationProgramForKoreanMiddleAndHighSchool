@@ -1509,7 +1509,7 @@ if __name__ == "__main__":
                 if self.교직원["원로교사"] == 0:
                     employee_elder_candidate_text.insert(END, f"작업연월, {작업월일}, 원로교사수당 지급 추정 추가 대상자:, {self.교직원['성명']}\n")
                     print("작업연월", 작업월일, "원로교사수당 지급 추정 추가 대상자:", self.교직원["성명"])
-                    return int(0)
+                    return 원로교사수당[self.작업연도] #자동입력, 자동입력 아닐 시 int(0)로 수정
                 elif self.교직원["원로교사"] == 1:
                     return 원로교사수당[self.작업연도]
             else:
