@@ -132,6 +132,10 @@ if __name__ == "__main__":
                 employee_appointment_year_box.current(0)
                 employee_appointment_month_box.current(0)
                 employee_appointment_day_box.current(0)
+            if "계속근무여부" in data.keys() and data["계속근무여부"]==1:
+                employee_keep_working_radiobtn2.select()
+            else:
+                employee_keep_working_radiobtn1.select()
             if "퇴직일" in data.keys() and data["퇴직일"] != "":
                 employee_retire_year_box.current(employee_retire_year_box_var.index(data["퇴직일"].split("-")[0]))
                 employee_retire_month_box.current(employee_retire_month_box_var.index(data["퇴직일"].split("-")[1]))
@@ -142,10 +146,10 @@ if __name__ == "__main__":
                 employee_retire_day_box.current(0)
             employee_position_btn.current(employee_position_btn_var.index(data["보직"]))
             employee_special_class_btn.current(employee_special_class_btn_var.index(data["가산정원"]))
-            if data["원로교사"]==0:
-                employee_elder_radiobtn1.select()
-            elif data["원로교사"]==1:
+            if "원로교사" in data.keys() and data["원로교사"]==1:
                 employee_elder_radiobtn2.select()
+            else:
+                employee_elder_radiobtn1.select()
             for item in employee_absence_treeview.get_children():
                 employee_absence_treeview.delete(item)
             if "휴직" in data.keys():
@@ -400,6 +404,15 @@ if __name__ == "__main__":
     employee_appointment_day_box = ttk.Combobox(root, height=5, width=2, state='readonly', values=employee_appointment_day_box_var)
     employee_appointment_day_box.current(0)
     employee_appointment_day_box.place(x=685-440+100, y=75)
+
+    employee_keep_working_label = Label(root, text='기간제교원 계속근무여부(정근수당 관련)')
+    employee_keep_working_label.place(x=140, y=100)
+    employee_keep_working_radiobtn_var = IntVar()
+    employee_keep_working_radiobtn1 = Radiobutton(root, text="N", value=0, variable=employee_keep_working_radiobtn_var)
+    employee_keep_working_radiobtn1.place(x=400-20,y=100)
+    employee_keep_working_radiobtn1.select()
+    employee_keep_working_radiobtn2 = Radiobutton(root, text="Y", value=1, variable=employee_keep_working_radiobtn_var)
+    employee_keep_working_radiobtn2.place(x=440-20,y=100) 
 
     employee_retire_label = Label(root, text="퇴직일")
     employee_retire_label.place(x=510-200+100, y=75)
@@ -732,23 +745,23 @@ if __name__ == "__main__":
 
 
     employee_absence_label = Label(root, text="휴직")
-    employee_absence_label.place(x=100, y=100)
+    employee_absence_label.place(x=100, y=100+30)
     employee_absence_category_box_var = [""]+["육아휴직(첫째)","육아휴직(둘째)","육아휴직(셋째)","육아휴직(넷째)","질병휴직","유학휴직","기타휴직"]
     employee_absence_category_box = ttk.Combobox(root, height=5, width=12, state='readonly', values=employee_absence_category_box_var)
     employee_absence_category_box.current(0)
-    employee_absence_category_box.place(x=140, y=100)
+    employee_absence_category_box.place(x=140, y=100+30)
     employee_absence1_year_label = Label(root, text="년")
-    employee_absence1_year_label.place(x=210+90+5, y=100)
+    employee_absence1_year_label.place(x=210+90+5, y=100+30)
     employee_absence1_year_box_var = [""]+[str(i) for i in range(datetime.now().year+2,2010,-1)]
     employee_absence1_year_box = ttk.Combobox(root, height=5, width=4, state='readonly', values=employee_absence1_year_box_var)
     employee_absence1_year_box.current(0)
-    employee_absence1_year_box.place(x=160+90+5, y=100)
+    employee_absence1_year_box.place(x=160+90+5, y=100+30)
     employee_absence1_month_label = Label(root, text="월")
-    employee_absence1_month_label.place(x=270+80+5, y=100)
+    employee_absence1_month_label.place(x=270+80+5, y=100+30)
     employee_absence1_month_box_var = [""]+[f"{i}" for i in range(1,13)]
     employee_absence1_month_box = ttk.Combobox(root, height=5, width=2, state='readonly', values=employee_absence1_month_box_var)
     employee_absence1_month_box.current(0)
-    employee_absence1_month_box.place(x=230+85+5, y=100)
+    employee_absence1_month_box.place(x=230+85+5, y=100+30)
     def update_employee_absence1_day_box(event):
         if employee_absence1_year_box.get() == "":
             showinfo("경고", "연도를 선택해주십시오.")
@@ -756,25 +769,25 @@ if __name__ == "__main__":
         employee_absence1_day_box['values'] = [""] + [str(i) for i in range(1, (datetime(int(employee_absence1_year_box.get()), int(employee_absence1_month_box.get()), 1) + relativedelta(months=1) - relativedelta(days=1)).day+1)]
     employee_absence1_month_box.bind('<<ComboboxSelected>>', update_employee_absence1_day_box)
     employee_absence1_day_label = Label(root, text="일")
-    employee_absence1_day_label.place(x=330+70+5, y=100)
+    employee_absence1_day_label.place(x=330+70+5, y=100+30)
     employee_absence1_day_box_var = [""]+[str(i) for i in range(1,32)]
     employee_absence1_day_box = ttk.Combobox(root, height=5, width=2, state='readonly', values=employee_absence1_day_box_var)
     employee_absence1_day_box.current(0)
-    employee_absence1_day_box.place(x=290+75+5, y=100)
+    employee_absence1_day_box.place(x=290+75+5, y=100+30)
     employee_absence2_year_label = Label(root, text="~")
-    employee_absence2_year_label.place(x=350-5+75, y=100)
+    employee_absence2_year_label.place(x=350-5+75, y=100+30)
     employee_absence2_year_label = Label(root, text="년")
-    employee_absence2_year_label.place(x=420-5+70, y=100)
+    employee_absence2_year_label.place(x=420-5+70, y=100+30)
     employee_absence2_year_box_var = [""]+[str(i) for i in range(datetime.now().year+2,2010,-1)]
     employee_absence2_year_box = ttk.Combobox(root, height=5, width=4, state='readonly', values=employee_absence2_year_box_var)
     employee_absence2_year_box.current(0)
-    employee_absence2_year_box.place(x=370-5+70, y=100)
+    employee_absence2_year_box.place(x=370-5+70, y=100+30)
     employee_absence2_month_label = Label(root, text="월")
-    employee_absence2_month_label.place(x=480-5+60, y=100)
+    employee_absence2_month_label.place(x=480-5+60, y=100+30)
     employee_absence2_month_box_var = [""]+[f"{i}" for i in range(1,13)]
     employee_absence2_month_box = ttk.Combobox(root, height=5, width=2, state='readonly', values=employee_absence2_month_box_var)
     employee_absence2_month_box.current(0)
-    employee_absence2_month_box.place(x=440-5+65, y=100)
+    employee_absence2_month_box.place(x=440-5+65, y=100+30)
     def update_employee_absence2_day_box(event):
         if employee_absence2_year_box.get() == "":
             showinfo("경고", "연도를 선택해주십시오.")
@@ -782,18 +795,18 @@ if __name__ == "__main__":
         employee_absence2_day_box['values'] = [""] + [str(i) for i in range(1, (datetime(int(employee_absence2_year_box.get()), int(employee_absence2_month_box.get()), 1) + relativedelta(months=1) - relativedelta(days=1)).day+1)]
     employee_absence2_month_box.bind('<<ComboboxSelected>>', update_employee_absence2_day_box)
     employee_absence2_day_label = Label(root, text="일")
-    employee_absence2_day_label.place(x=540-5+50, y=100)
+    employee_absence2_day_label.place(x=540-5+50, y=100+30)
     employee_absence2_day_box_var = [""]+[str(i) for i in range(1,32)]
     employee_absence2_day_box = ttk.Combobox(root, height=5, width=2, state='readonly', values=employee_absence2_day_box_var)
     employee_absence2_day_box.current(0)
-    employee_absence2_day_box.place(x=500-5+55, y=100)
+    employee_absence2_day_box.place(x=500-5+55, y=100+30)
 
     employee_contigous_radiobtn_var = IntVar()
     employee_contigous_radiobtn1 = Radiobutton(root, text="N", value=0, variable=employee_contigous_radiobtn_var)
-    employee_contigous_radiobtn1.place(x=600,y=100)
+    employee_contigous_radiobtn1.place(x=600,y=100+30)
     employee_contigous_radiobtn1.select()
     employee_contigous_radiobtn2 = Radiobutton(root, text="Y", value=1, variable=employee_contigous_radiobtn_var)
-    employee_contigous_radiobtn2.place(x=635,y=100)
+    employee_contigous_radiobtn2.place(x=635,y=100+30)
 
     def employee_absence_push(treeview):
         global employeelist_treeview
@@ -824,7 +837,7 @@ if __name__ == "__main__":
                 treeview.insert("",END,values=(category, datetime_start.date(), datetime_end.date(), contigous))
 
     employee_absence_pushbtn = Button(root, text="넣기", command=lambda: employee_absence_push(employee_absence_treeview))
-    employee_absence_pushbtn.place(x=100,y=125)
+    employee_absence_pushbtn.place(x=100,y=125+30)
 
     def employee_absence_pull(treeview):
         global employeelist
@@ -833,7 +846,7 @@ if __name__ == "__main__":
             to_pull = treeview.item(selection[0])['values']
             treeview.delete(selection)
     employee_absence_pullbtn = Button(root, text="뺴기", command=lambda: employee_absence_pull(employee_absence_treeview))
-    employee_absence_pullbtn.place(x=100,y=155)
+    employee_absence_pullbtn.place(x=100,y=155+30)
 
 
     def employee_absence_apply(treeview):
@@ -846,10 +859,10 @@ if __name__ == "__main__":
         absence_list.sort(key=lambda x: x[2], reverse=True)
         employeelist[ind]["휴직"] = absence_list
     employee_absence_applybtn = Button(root, text="적용", command=lambda: employee_absence_apply(employee_absence_treeview))
-    employee_absence_applybtn.place(x=100,y=185)
+    employee_absence_applybtn.place(x=100,y=185+30)
 
 
-    employee_absence_treeview = ttk.Treeview(root, height=10, columns=('휴직종류','시작일','종료일','아빠의달'), show="headings")
+    employee_absence_treeview = ttk.Treeview(root, height=8, columns=('휴직종류','시작일','종료일','아빠의달'), show="headings")
     employee_absence_treeview.heading("휴직종류",text="휴직종류")
     employee_absence_treeview.heading("시작일",text="시작일")
     employee_absence_treeview.heading("종료일",text="종료일")
@@ -859,7 +872,7 @@ if __name__ == "__main__":
     employee_absence_treeview.column(1, width=160)
     employee_absence_treeview.column(2, width=160)
     employee_absence_treeview.column(3, width=55)
-    employee_absence_treeview.place(x=140, y=125)
+    employee_absence_treeview.place(x=140, y=125+30)
 
 
     def employee_career_entry_chk(input_name):
@@ -1045,6 +1058,7 @@ if __name__ == "__main__":
                                      "급":employee_gradebtn.get(),
                                      "현근무년수변경일":"" if employee_year_datechangebtn.get() == "" or employee_month_datechangebtn.get() == "" or employee_day_datechangebtn.get() == "" else "-".join([employee_year_datechangebtn.get().replace("년",""), employee_month_datechangebtn.get().replace("월",""), employee_day_datechangebtn.get().replace("일","")]),
                                      "현부서임용일":"" if employee_appointment_year_box.get() == "" or employee_appointment_month_box.get() == "" or employee_appointment_day_box.get() == "" else "-".join([employee_appointment_year_box.get(), employee_appointment_month_box.get(), employee_appointment_day_box.get()]),
+                                     "계속근무여부":employee_keep_working_radiobtn_var.get(),
                                      "퇴직일":"" if employee_retire_year_box.get() == "" or employee_retire_month_box.get() == "" or employee_retire_day_box.get() == "" else "-".join([employee_retire_year_box.get(), employee_retire_month_box.get(), employee_retire_day_box.get()]),
                                      "보직":employee_position_btn.get(),
                                      "가산정원":employee_special_class_btn.get(),
@@ -1111,6 +1125,7 @@ if __name__ == "__main__":
             employeelist[ind]["급"]=employee_gradebtn.get()
             employeelist[ind]["현근무년수변경일"]="" if employee_year_datechangebtn.get() == "" or employee_month_datechangebtn.get() == "" or employee_day_datechangebtn.get() == "" else "-".join([employee_year_datechangebtn.get().replace("년",""), employee_month_datechangebtn.get().replace("월",""), employee_day_datechangebtn.get().replace("일","")])
             employeelist[ind]["현부서임용일"]="" if employee_appointment_year_box.get() == "" or employee_appointment_month_box.get() == "" or employee_appointment_day_box.get() == "" else "-".join([employee_appointment_year_box.get(), employee_appointment_month_box.get(), employee_appointment_day_box.get()])
+            employeelist[ind]["계속근무여부"]=employee_keep_working_radiobtn_var.get()
             employeelist[ind]["퇴직일"]="" if employee_retire_year_box.get() == "" or employee_retire_month_box.get() == "" or employee_retire_day_box.get() == "" else "-".join([employee_retire_year_box.get(), employee_retire_month_box.get(), employee_retire_day_box.get()])
             employeelist[ind]["보직"]=employee_position_btn.get()
             employeelist[ind]["가산정원"]=employee_special_class_btn.get()
@@ -1230,17 +1245,10 @@ if __name__ == "__main__":
         def strptime(self, str_date):
             return datetime.strptime(str_date, "%Y-%m-%d")
 
-        def 본봉(self):
-            working_month = (datetime(int(작업연도), 1, 1)+relativedelta(months=self.현재월-1))
-            if self.교직원['현부서임용일'] != "" and working_month < self.strptime(self.교직원['현부서임용일']):
-                return int(0)
-            if self.교직원['퇴직일'] != "" and self.strptime(self.교직원['퇴직일']) <= working_month:
-                return int(0)
+        def 호봉(self, working_month):
             if self.교직원["직종"] == "기간제교원":
-                if int(self.교직원['승급년월일'].split("-")[1]) in [1,2]:
-                    호봉 = self.교직원['호봉']+(working_month - datetime(int(self.교직원['승급년월일'].split("-")[0])-1,3,1)).days//365
-                else:
-                    호봉 = self.교직원['호봉']+(working_month - datetime(int(self.교직원['승급년월일'].split("-")[0]),3,1)).days//365
+                전기승급일 = self.strptime(self.교직원['승급년월일']) + relativedelta(years=-1, months=self.교직원['근무연한'][1], days=self.교직원['근무연한'][2])
+                호봉 = self.교직원["호봉"]+(datetime(int(작업연도), 3, 1) - 전기승급일).days//365.25
             else:
                 if '휴직' in self.교직원.keys():
                     all_sick_leaves = [(self.strptime(date_start), self.strptime(date_end)) for category, date_start, date_end, _ in self.교직원["휴직"] if re.search("질병휴직", category)]
@@ -1266,6 +1274,16 @@ if __name__ == "__main__":
                     호봉 = self.교직원['호봉']+(working_month + relativedelta(months=self.교직원['근무연한'][1], days=self.교직원['근무연한'][2]) - self.strptime(self.교직원['승급년월일']) - full_upgrade_restriction_duration).days//365.25
                 else:
                     호봉 = self.교직원['호봉']+(working_month + relativedelta(months=self.교직원['근무연한'][1], days=self.교직원['근무연한'][2]) - self.strptime(self.교직원['승급년월일'])).days//365.25
+            return 호봉
+
+        def 본봉(self):
+            working_month = (datetime(int(작업연도), 1, 1)+relativedelta(months=self.현재월-1))
+            if self.교직원['현부서임용일'] != "" and working_month < self.strptime(self.교직원['현부서임용일']):
+                return int(0)
+            if self.교직원['퇴직일'] != "" and self.strptime(self.교직원['퇴직일']) <= working_month:
+                return int(0)
+            호봉 = self.호봉(working_month)
+            print(호봉)
             if self.교직원['급'] == '':
                 if 호봉 > 50:
                     return int(self.본봉표[3][self.본봉표[3]['호봉']==50]['봉급'])
@@ -1355,8 +1373,12 @@ if __name__ == "__main__":
             if self.현재월 in [13,7]:
                 if self.교직원["직종"] == "기간제교원":
                     if self.교직원["근무연한"][0] + 추가근무연한일수//365 >= 10:
+                        if "계속근무여부" in self.교직원.keys() and self.교직원["계속근무여부"] == 1:
+                            return int(self.본봉()*0.05*10//10*10)
                         return int(self.본봉()*0.05*10*real_working_months/6//10*10)
                     else:
+                        if "계속근무여부" in self.교직원.keys() and self.교직원["계속근무여부"] == 1:
+                            int(self.본봉()*0.05*(self.교직원["근무연한"][0] + 추가근무연한일수//365)//10*10)
                         return int(self.본봉()*0.05*(self.교직원["근무연한"][0] + 추가근무연한일수//365)*real_working_months/6//10*10)
                 else:
                     if 근무연수 >= 10:
@@ -1794,11 +1816,11 @@ if __name__ == "__main__":
         작업연도 = employee_working_year_box.get()
 
     employee_working_year_label = Label(root, text="급여작업년도")
-    employee_working_year_label.place(x=645, y=60+25+35)
+    employee_working_year_label.place(x=680, y=60+25+35)
     employee_working_year_box_var = [str(i) for i in range(datetime.now().year,2016,-1)]
     employee_working_year_box = ttk.Combobox(root, height=5, width=4, state='readonly', values=employee_working_year_box_var)
     employee_working_year_box.current(0)
-    employee_working_year_box.place(x=645,y=85+25+35)
+    employee_working_year_box.place(x=700,y=85+25+35)
     employee_working_year_box.bind("<<ComboboxSelected>>", set_working_year)
 
     def create_salary(salary_creation):
