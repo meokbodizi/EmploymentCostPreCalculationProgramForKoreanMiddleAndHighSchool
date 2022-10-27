@@ -1247,8 +1247,12 @@ if __name__ == "__main__":
 
         def 호봉(self, working_month):
             if self.교직원["직종"] == "기간제교원":
+                if working_month.month in [1,2]:
+                    test_date = datetime(working_month.year - 1, 3, 1)
+                else:
+                    test_date = datetime(working_month.year, 3, 1)
                 전기승급일 = self.strptime(self.교직원['승급년월일']) + relativedelta(years=-1, months=self.교직원['근무연한'][1], days=self.교직원['근무연한'][2])
-                호봉 = self.교직원["호봉"]+(datetime(int(작업연도), 3, 1) - 전기승급일).days//365.25
+                호봉 = self.교직원["호봉"]+relativedelta(test_date, 전기승급일).years
             else:
                 if '휴직' in self.교직원.keys():
                     all_sick_leaves = [(self.strptime(date_start), self.strptime(date_end)) for category, date_start, date_end, _ in self.교직원["휴직"] if re.search("질병휴직", category)]
@@ -1265,15 +1269,15 @@ if __name__ == "__main__":
                     full_upgrade_restriction_duration = working_month - all_upgrade_restriction_durations[num][0]
                     for i in range(num):
                         full_upgrade_restriction_duration += all_upgrade_restriction_durations[i][1] - all_upgrade_restriction_durations[i][0]
-                    호봉 = self.교직원['호봉']+(working_month + relativedelta(months=self.교직원['근무연한'][1], days=self.교직원['근무연한'][2]) - self.strptime(self.교직원['승급년월일']) - full_upgrade_restriction_duration).days//365.25
+                    호봉 = self.교직원['호봉'] + relativedelta(working_month + relativedelta(months=self.교직원['근무연한'][1], days=self.교직원['근무연한'][2]), self.strptime(self.교직원['승급년월일']) - full_upgrade_restriction_duration).years
                 elif all_upgrade_restriction_durations != [[]] and [num for num, dates in enumerate(all_upgrade_restriction_durations) if dates[1] <= working_month] != []:
                     num = max([num for num, dates in enumerate(all_upgrade_restriction_durations) if dates[1] <= working_month])
                     full_upgrade_restriction_duration = all_upgrade_restriction_durations[num][1] - all_upgrade_restriction_durations[num][0]
                     for i in range(num):
                         full_upgrade_restriction_duration += all_upgrade_restriction_durations[i][1] - all_upgrade_restriction_durations[i][0]
-                    호봉 = self.교직원['호봉']+(working_month + relativedelta(months=self.교직원['근무연한'][1], days=self.교직원['근무연한'][2]) - self.strptime(self.교직원['승급년월일']) - full_upgrade_restriction_duration).days//365.25
+                    호봉 = self.교직원['호봉'] + relativedelta(working_month + relativedelta(months=self.교직원['근무연한'][1], days=self.교직원['근무연한'][2]), self.strptime(self.교직원['승급년월일']) - full_upgrade_restriction_duration).years
                 else:
-                    호봉 = self.교직원['호봉']+(working_month + relativedelta(months=self.교직원['근무연한'][1], days=self.교직원['근무연한'][2]) - self.strptime(self.교직원['승급년월일'])).days//365.25
+                    호봉 = self.교직원['호봉'] + relativedelta(working_month + relativedelta(months=self.교직원['근무연한'][1], days=self.교직원['근무연한'][2]), self.strptime(self.교직원['승급년월일'])).years
             return 호봉
 
         def 본봉(self):
@@ -1283,7 +1287,6 @@ if __name__ == "__main__":
             if self.교직원['퇴직일'] != "" and self.strptime(self.교직원['퇴직일']) <= working_month:
                 return int(0)
             호봉 = self.호봉(working_month)
-            print(호봉)
             if self.교직원['급'] == '':
                 if 호봉 > 50:
                     return int(self.본봉표[3][self.본봉표[3]['호봉']==50]['봉급'])
@@ -1789,7 +1792,7 @@ if __name__ == "__main__":
                 return percents, prolations, working_month_totaldays
             if self.교직원['퇴직일'] != "" and self.strptime(self.교직원['퇴직일']) <= working_month:
                 return percents, prolations, working_month_totaldays
-            if "감봉시작일" in self.교직원.keys():
+            if "감봉시작일" in self.교직원.keys() and self.교직원["감봉시작일"] != "":
                 date_start, date_end = self.strptime(self.교직원["감봉시작일"]), self.strptime(self.교직원["감봉종료일"])
                 if ((date_start<=working_month+relativedelta(months=1)-relativedelta(days=1) and working_month<=date_start) or (date_end<=working_month+relativedelta(months=1)-relativedelta(days=1) and working_month<=date_end) or (working_month<=date_end and working_month>=date_start)):
                     ongoing_leave = [date_start, date_end]
@@ -1900,7 +1903,7 @@ if __name__ == "__main__":
         wb = openpyxl.Workbook()
         ws = wb.active
         for 급여 in 급여목록:
-            ws.append([급여.교직원["직종"], 급여.교직원["성명"], f"{급여.교직원['호봉']}호봉", 급여.교직원["급"], 급여.교직원["보직"], 급여.교직원["퇴직일"]])
+            ws.append([급여.교직원["직종"], 급여.교직원["성명"], f"{급여.호봉(datetime(int(작업연도), 3, 1))}호봉", 급여.교직원["급"], 급여.교직원["보직"], 급여.교직원["퇴직일"]])
             df = 급여.salary_table.transpose()
             df.insert(df.shape[1], "합계", df.sum(axis=1))
             for r in dataframe_to_rows(df, index=True, header=True):
@@ -1972,15 +1975,15 @@ if __name__ == "__main__":
             df = df.sum(axis=0)
             if 급여.교직원["퇴직일"] != "" and datetime(*map(int, 급여.교직원["퇴직일"].split("-"))) < datetime(int(작업연도), 3, 1):
                 continue
+            print(급여)
             ws.append([급여.교직원["성명"],
                        rrn_to_datetime(급여.교직원["주민번호"]).date(),
                        급여.교직원["직종"],
                        '',
                        '',
                        급여.교직원["현부서임용일"],
-                       "",
-                       (relativedelta(years = 급여.교직원["근무연한"][0], months = 급여.교직원["근무연한"][1], days = 급여.교직원["근무연한"][2]) + datetime(int(작업연도), 3, 1) - datetime(*map(int, 급여.교직원["승급년월일"].split("-")))).days//365,
-                       급여.교직원['호봉']+(datetime(int(작업연도), 3, 1) - datetime(*map(int, 급여.교직원["승급년월일"].split("-")))).days//365,
+                       "",                       
+                       급여.호봉(datetime(int(작업연도), 3, 1)),
                        "-".join(급여.교직원["승급년월일"].split("-")[1:]),
                        df["본봉"],
                        df["정근수당"],
