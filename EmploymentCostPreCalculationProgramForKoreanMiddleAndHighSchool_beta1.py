@@ -1374,11 +1374,13 @@ if __name__ == "__main__":
                 if self.교직원["직종"] == "기간제교원":
                     if self.교직원["근무연한"][0] + 추가근무연한일수//365 >= 10:
                         if "계속근무여부" in self.교직원.keys() and self.교직원["계속근무여부"] == 1:
-                            return int(self.본봉()*0.05*10//10*10)
+                            if datetime(int(작업연도), 1, 1)+relativedelta(months=self.현재월-7) <= self.strptime(self.교직원["현부서임용일"]) and self.strptime(self.교직원["현부서임용일"]) <= datetime(int(작업연도), 1, 1)+relativedelta(months=self.현재월-1,days=-1):
+                                return int(self.본봉()*0.05*10//10*10)
                         return int(self.본봉()*0.05*10*real_working_months/6//10*10)
                     else:
                         if "계속근무여부" in self.교직원.keys() and self.교직원["계속근무여부"] == 1:
-                            int(self.본봉()*0.05*(self.교직원["근무연한"][0] + 추가근무연한일수//365)//10*10)
+                            if datetime(int(작업연도), 1, 1)+relativedelta(months=self.현재월-7) <= self.strptime(self.교직원["현부서임용일"]) and self.strptime(self.교직원["현부서임용일"]) <= datetime(int(작업연도), 1, 1)+relativedelta(months=self.현재월-1,days=-1):
+                                return int(self.본봉()*0.05*(self.교직원["근무연한"][0] + 추가근무연한일수//365)//10*10)
                         return int(self.본봉()*0.05*(self.교직원["근무연한"][0] + 추가근무연한일수//365)*real_working_months/6//10*10)
                 else:
                     if 근무연수 >= 10:
