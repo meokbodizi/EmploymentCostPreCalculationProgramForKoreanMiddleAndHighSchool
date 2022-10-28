@@ -1899,7 +1899,6 @@ if __name__ == "__main__":
         # remove duplicates
         seen = set()
         dupes = [x for x in [급여.교직원["주민번호"] for 급여 in 급여목록] if x in seen or seen.add(x)]
-        print(dupes)
         for dupes_ in range(len(dupes)):
             indexes = [i for i, x in enumerate([급여.교직원["주민번호"] for 급여 in 급여목록]) if x==dupes[dupes_]]
             급여목록[indexes[-1]].salary_table = sum([급여.salary_table for i, 급여 in enumerate(급여목록) if i in indexes])
