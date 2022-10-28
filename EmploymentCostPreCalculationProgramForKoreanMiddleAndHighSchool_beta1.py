@@ -1270,13 +1270,13 @@ if __name__ == "__main__":
                     full_upgrade_restriction_duration = working_month - all_upgrade_restriction_durations[num][0]
                     for i in range(num):
                         full_upgrade_restriction_duration += all_upgrade_restriction_durations[i][1] - all_upgrade_restriction_durations[i][0]
-                    호봉 = self.교직원['호봉'] + relativedelta(working_month + relativedelta(months=self.교직원['근무연한'][1], days=self.교직원['근무연한'][2]), self.strptime(self.교직원['승급년월일']) - full_upgrade_restriction_duration).years
+                    호봉 = self.교직원['호봉'] + relativedelta(working_month + relativedelta(months=self.교직원['근무연한'][1], days=self.교직원['근무연한'][2]), self.strptime(self.교직원['승급년월일']) + full_upgrade_restriction_duration).years
                 elif all_upgrade_restriction_durations != [[]] and [num for num, dates in enumerate(all_upgrade_restriction_durations) if dates[1] <= working_month] != []:
                     num = max([num for num, dates in enumerate(all_upgrade_restriction_durations) if dates[1] <= working_month])
                     full_upgrade_restriction_duration = all_upgrade_restriction_durations[num][1] - all_upgrade_restriction_durations[num][0]
                     for i in range(num):
                         full_upgrade_restriction_duration += all_upgrade_restriction_durations[i][1] - all_upgrade_restriction_durations[i][0]
-                    호봉 = self.교직원['호봉'] + relativedelta(working_month + relativedelta(months=self.교직원['근무연한'][1], days=self.교직원['근무연한'][2]), self.strptime(self.교직원['승급년월일']) - full_upgrade_restriction_duration).years
+                    호봉 = self.교직원['호봉'] + relativedelta(working_month + relativedelta(months=self.교직원['근무연한'][1], days=self.교직원['근무연한'][2]), self.strptime(self.교직원['승급년월일']) + full_upgrade_restriction_duration).years
                 else:
                     호봉 = self.교직원['호봉'] + relativedelta(working_month + relativedelta(months=self.교직원['근무연한'][1], days=self.교직원['근무연한'][2]), self.strptime(self.교직원['승급년월일'])).years
             return 호봉
@@ -1630,13 +1630,7 @@ if __name__ == "__main__":
             elif self.교직원["보직"] == "교감":
                 return int(시간외근무수당[self.작업연도][self.교직원["보직"]]*10//10*10)
             else:
-                if self.교직원["직종"] == "기간제교원":
-                    if int(self.교직원['승급년월일'].split("-")[1]) in [1,2]:
-                        호봉 = self.교직원['호봉']+(working_month - datetime(int(self.교직원['승급년월일'].split("-")[0])-1,3,1)).days//365
-                    else:
-                        호봉 = self.교직원['호봉']+(working_month - datetime(int(self.교직원['승급년월일'].split("-")[0]),3,1)).days//365
-                else:
-                    호봉 = self.교직원['호봉']+(working_month - self.strptime(self.교직원['승급년월일'])).days//365
+                호봉 = self.호봉(working_month)
                 return int([value for lower, upper, value in 시간외근무수당[self.작업연도]["교원"] if lower <= 호봉 and 호봉 <= upper][0]*10//10*10)
         def 학교운영수당(self, 학교운영수당):
             working_month = (datetime(int(작업연도), 1, 1)+relativedelta(months=self.현재월-1))
@@ -1884,10 +1878,11 @@ if __name__ == "__main__":
                 salarytable.append(int(급여.교직수당가산금6(보건교사수당)*(denom-sum(numers)-sum(prolations[:-1]))/denom//10*10)*(sum(prolation*(1-percent) for prolation, percent in zip(prolations2, percents2))/denom)//10*10)
                 salarytable.append(int(급여.교직수당가산금10(상담교사수당)*(denom-sum(numers)-sum(prolations[:-1]))/denom//10*10)*(sum(prolation*(1-percent) for prolation, percent in zip(prolations2, percents2))/denom)//10*10)
                 salarytable.append(int(급여.가족수당(가족수당)*(denom-sum(numers))/denom*(1 if len(prolations)==1 else sum([prolation*percent for prolation, percent in zip(prolations, percents)])/(denom-sum(numers)))//10*10)*(sum(prolation*(1-percent) for prolation, percent in zip(prolations2, percents2))/denom)//10*10)
+                ## 나중에 수정 필요. prolations랑 prolations2가 겹치는 기간인 경우. 호봉 계산에 힌트
                 if (denom-sum(numers)-sum(prolations[:-1])-sum(prolations2[:-1]))>=15:
                     salarytable.append(급여.시간외근무수당정액분(시간외근무수당))
                 else:
-                    salarytable.append(int(급여.시간외근무수당정액분(시간외근무수당)*(denom-sum(numers)-sum(prolations[:-1])-sum(prolations2[:-1])))/15//10*10)
+                    salarytable.append(0 if int(급여.시간외근무수당정액분(시간외근무수당)*(denom-sum(numers)-sum(prolations[:-1])-sum(prolations2[:-1])))/15//10*10 < 0 else int(급여.시간외근무수당정액분(시간외근무수당)*(denom-sum(numers)-sum(prolations[:-1])-sum(prolations2[:-1])))/15//10*10)
                 salarytable.append(int(급여.학교운영수당(학교운영수당)*(denom-sum(numers)-sum(prolations[:-1]))/denom//10*10)*(sum(prolation*(1-percent) for prolation, percent in zip(prolations2, percents2))/denom)//10*10)
                 salarytable.append(int(급여.교원연구비()*(denom-sum(numers))/denom*(1 if len(prolations)==1 else sum([prolation*percent for prolation, percent in zip(prolations, percents)])/(denom-sum(numers)))//10*10)*(sum(prolation*(1-percent) for prolation, percent in zip(prolations2, percents2))/denom)//10*10)
                 salarytable.append(급여.연가보상비())
