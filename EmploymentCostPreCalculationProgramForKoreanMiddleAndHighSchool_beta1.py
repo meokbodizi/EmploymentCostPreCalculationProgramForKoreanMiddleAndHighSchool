@@ -21,6 +21,7 @@ import pickle
 from functools import reduce
 import json
 import numpy as np
+import collections
 
 if __name__ == "__main__":
 
@@ -1895,7 +1896,16 @@ if __name__ == "__main__":
             salarydf = pd.DataFrame(salarytables, columns=['본봉','정근수당','정근수당가산금','정근수당추가가산금','정액급식비','직급보조비','명절휴가비','관리업무수당','보전수당','교직수당','교직수당가산금1','교직수당가산금2','교직수당가산금4','교직수당가산금6','교직수당가산금10','가족수당','시간외근무수당정액분','학교운영수당','교원연구비','연가보상비','육아휴직수당'])
             salarydf = salarydf.set_axis([(datetime(int(작업연도), 3,1)+relativedelta(months=month)).date() for month in range(12)])
             급여.salary_table = salarydf
-
+        # remove duplicates
+        seen = set()
+        dupes = [x for x in [급여.교직원["주민번호"] for 급여 in 급여목록] if x in seen or seen.add(x)]
+        for dupes_ in range(len(dupes)):
+            dupes_ = 0
+            indexes = [i for i, x in enumerate([급여.교직원["주민번호"] for 급여 in 급여목록]) if x==dupes[dupes_]]
+            급여목록[indexes[-1]].salary_table = sum([급여.salary_table for i, 급여 in enumerate(급여목록) if i in indexes])
+            for i in reversed(indexes[:-1]):
+                급여목록.pop(i)
+        
     salary_calculation_btn = Button(root, text="작업연도 급여계산", command=lambda: calculate_salary_table(employeelist))
     salary_calculation_btn.place(x=645,y=310+25+35-170)
 
@@ -1975,7 +1985,6 @@ if __name__ == "__main__":
             df = df.sum(axis=0)
             if 급여.교직원["퇴직일"] != "" and datetime(*map(int, 급여.교직원["퇴직일"].split("-"))) < datetime(int(작업연도), 3, 1):
                 continue
-            print(급여)
             ws.append([급여.교직원["성명"],
                        rrn_to_datetime(급여.교직원["주민번호"]).date(),
                        급여.교직원["직종"],
