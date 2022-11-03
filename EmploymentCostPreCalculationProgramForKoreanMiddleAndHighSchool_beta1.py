@@ -1496,7 +1496,6 @@ if __name__ == "__main__":
             if self.현재월 in 명절월:
                 holiday_date = self.strptime(list(self.명절년월일.values())[명절월.index(self.현재월)])
                 ongoing_absence = sum([1 for date_start, date_end in all_absence_durations if ((date_start<=holiday_date+relativedelta(months=1)-relativedelta(days=1) and holiday_date<=date_start) or (date_end<=holiday_date+relativedelta(months=1)-relativedelta(days=1) and holiday_date<=date_end) or (holiday_date<=date_end and holiday_date>=date_start))])
-                print(self.교직원["성명"], all_absence_durations, ongoing_absence)
                 if ongoing_absence == 1:
                     return int(0)
                 return int(self.본봉()*0.6//10*10)
