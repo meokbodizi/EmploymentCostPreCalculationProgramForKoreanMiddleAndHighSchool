@@ -1259,7 +1259,7 @@ if __name__ == "__main__":
                     all_sick_leaves = [(self.strptime(date_start), self.strptime(date_end)) for category, date_start, date_end, _ in self.교직원["휴직"] if re.search("질병휴직", category)]
                 else:
                     all_sick_leaves = []
-                if '승급제한시작일' in self.교직원.keys():
+                if '승급제한시작일' in self.교직원.keys() and self.교직원["승급제한시작일"] != "":
                     upgrade_restriction_duration = (self.strptime(self.교직원['승급제한시작일']), self.strptime(self.교직원['승급제한종료일']))
                 else:
                     upgrade_restriction_duration = []
