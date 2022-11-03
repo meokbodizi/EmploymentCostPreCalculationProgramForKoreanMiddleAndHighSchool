@@ -1240,7 +1240,7 @@ if __name__ == "__main__":
         본봉표 = None
         def __init__(self, 교직원, 작업연도, 명절년월일):
             self.교직원 = 교직원
-            self.명절월 = list(map(lambda x : int(re.sub("^2$", "14", re.sub("^1$", "13", x.split("-")[1]))), 명절년월일.values()))
+            self.명절년월일 = 명절년월일
             self.급여 = pd.DataFrame()
             self.작업연도 = 작업연도
         def strptime(self, str_date):
@@ -1263,8 +1263,9 @@ if __name__ == "__main__":
                     upgrade_restriction_duration = (self.strptime(self.교직원['승급제한시작일']), self.strptime(self.교직원['승급제한종료일']))
                 else:
                     upgrade_restriction_duration = []
-                all_upgrade_restriction_durations = all_sick_leaves + [upgrade_restriction_duration]
-                all_upgrade_restriction_durations = merge_date_ranges(all_upgrade_restriction_durations)
+                all_upgrade_restriction_durations = sorted([x for x in all_sick_leaves + [upgrade_restriction_duration] if x != []])
+                if len(all_upgrade_restriction_durations) > 1:
+                    all_upgrade_restriction_durations = merge_date_ranges(all_upgrade_restriction_durations)
                 if all_upgrade_restriction_durations != [[]] and [num for num, dates in enumerate(all_upgrade_restriction_durations) if dates[0] <= working_month and working_month < dates[1]] != []:
                     num = [num for num, dates in enumerate(all_upgrade_restriction_durations) if dates[0] <= working_month and working_month < dates[1]][0]
                     full_upgrade_restriction_duration = working_month - all_upgrade_restriction_durations[num][0]
@@ -1479,7 +1480,25 @@ if __name__ == "__main__":
                 return int(0)
             if self.교직원['퇴직일'] != "" and self.strptime(self.교직원['퇴직일']) <= working_month:
                 return int(0)
-            if self.현재월 in self.명절월:
+            if '휴직' in self.교직원.keys():
+                all_leaves = [(self.strptime(date_start), self.strptime(date_end)) for category, date_start, date_end, _ in self.교직원["휴직"]]
+            else:
+                all_leaves = []
+            if '승급제한시작일' in self.교직원.keys() and self.교직원["승급제한시작일"] != "":
+                upgrade_restriction_duration = (self.strptime(self.교직원['승급제한시작일']), self.strptime(self.교직원['승급제한종료일']))
+            else:
+                upgrade_restriction_duration = []
+            all_absence_durations = sorted([x for x in all_leaves + [upgrade_restriction_duration] if x != []])
+            if len(all_absence_durations) > 1:
+                all_absence_durations = merge_date_ranges(all_absence_durations)
+            명절월 = list(map(lambda x : int(re.sub("^2$", "14", re.sub("^1$", "13", x.split("-")[1]))), self.명절년월일.values()))
+            # ongoing_absence_duration
+            if self.현재월 in 명절월:
+                holiday_date = self.strptime(list(self.명절년월일.values())[명절월.index(self.현재월)])
+                ongoing_absence = sum([1 for date_start, date_end in all_absence_durations if ((date_start<=holiday_date+relativedelta(months=1)-relativedelta(days=1) and holiday_date<=date_start) or (date_end<=holiday_date+relativedelta(months=1)-relativedelta(days=1) and holiday_date<=date_end) or (holiday_date<=date_end and holiday_date>=date_start))])
+                print(self.교직원["성명"], all_absence_durations, ongoing_absence)
+                if ongoing_absence == 1:
+                    return int(0)
                 return int(self.본봉()*0.6//10*10)
             else:
                 return int(0)
