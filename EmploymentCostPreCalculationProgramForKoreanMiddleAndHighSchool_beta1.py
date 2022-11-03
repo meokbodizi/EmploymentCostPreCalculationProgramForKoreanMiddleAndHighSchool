@@ -1252,7 +1252,10 @@ if __name__ == "__main__":
                     test_date = datetime(working_month.year - 1, 3, 1)
                 else:
                     test_date = datetime(working_month.year, 3, 1)
-                전기승급일 = self.strptime(self.교직원['승급년월일']) + relativedelta(years=-1, months=self.교직원['근무연한'][1], days=self.교직원['근무연한'][2])
+                if self.교직원['근무연한'][1] == 0 and self.교직원['근무연한'][2] == 0:
+                    전기승급일 = self.strptime(self.교직원['승급년월일'])
+                else:
+                    전기승급일 = self.strptime(self.교직원['승급년월일']) + relativedelta(years=-1, months=self.교직원['근무연한'][1], days=self.교직원['근무연한'][2])
                 호봉 = self.교직원["호봉"]+relativedelta(test_date, 전기승급일).years
             else:
                 if '휴직' in self.교직원.keys():
@@ -1613,8 +1616,8 @@ if __name__ == "__main__":
             직계존속수당 = 0
             for 가족 in [가족 for 가족 in self.교직원["가족사항"] if 가족["가족관계"] == "직계존속"]:
                 생년월일 = rrn_to_datetime(가족["주민등록번호"])
-                작업월일 = (working_month)
-                만나이 = 작업월일.year - 생년월일.year - ((작업월일.month, 작업월일.day) < (생년월일.month, 생년월일.day))
+                작업년월일 = working_month
+                만나이 = 작업년월일.year - 생년월일.year - ((작업년월일.month, 작업년월일.day) < (생년월일.month, 생년월일.day))
                 if (int(가족["주민등록번호"].split("-")[1][0]) in [1,3] and 만나이 >= 60) or (int(가족["주민등록번호"].split("-")[1][0]) in [2,4] and 만나이 >= 55):
                     직계존속수당 += 가족수당[self.작업연도]["직계존속"]
             직계비속수당 = 0
@@ -1623,9 +1626,9 @@ if __name__ == "__main__":
                 직계비속생년월일.append((가족["지급여부"], rrn_to_datetime(가족["주민등록번호"])))
             for n, 생년월일 in enumerate(sorted(직계비속생년월일, key= lambda x: x[1])):
                 지급여부, 생년월일 = 생년월일
-                작업월일 = (working_month)
-                만나이 = 작업월일.year - 생년월일.year - ((작업월일.month, 작업월일.day) < (생년월일.month, 생년월일.day))
-                if 만나이 < 20 and 지급여부 == 1:
+                작업년월일 = working_month
+                만나이 = 작업년월일.year - 생년월일.year - ((작업년월일.month, 작업년월일.day) < (생년월일.month, 생년월일.day))
+                if 만나이 < 19 and 지급여부 == 1:
                     직계비속수당 += 가족수당[self.작업연도]["직계비속"][n]
             return 배우자수당+직계존속수당+직계비속수당
 
